@@ -25,24 +25,28 @@ function App() {
   return (
     <div className="App">
       <header>
-        <h3>GamZa King</h3>
+        <h3 className='text-center'>GamZa King</h3>
       </header>
       <main className='row main-container'>
-        <div className='col-3'>
-          <div style={{width: '100%', height: '100%'}}>
+        <div className='col'>
+          <div className='align-middle'>
               <GaugeChart id="gauge-chart1" 
                   nrOfLevels={30} 
                   percent={gaugeData.value / gaugeData.maxValue} 
               />
           </div>
+        </div>
+        {image && <div className='col-md-6'>        
+          <img className='img-fluid' src={image} alt="Streamed Image" />
+        </div>}
+        <div className='col'>
           <div>
-            온도
+              <GaugeChart id="gauge-chart1" 
+                  nrOfLevels={50} 
+                  percent={gaugeData.value / gaugeData.maxValue} 
+              />
           </div>
         </div>
-        <div className='col-6'>        
-          {image && <img className='img-fluid' src={image} alt="Streamed Image" />}
-        </div>
-        <div className='col-3'></div>
       </main>
     </div>
   );
