@@ -27,14 +27,10 @@ async def send_camera_image(websocket):
 
     while True:
         ret, frame = cap.read()
-        (h, w) = frame.shape[:2]
-        (cX, cY) = (w // 2, h // 2)
-        M = cv2.getRotationMatrix2D((cX, cY), -90, 1.0)
-        rotated_90 = cv2.warpAffine(frame, M, (w, h))
         if not ret:
             continue
 
-        _, buffer = cv2.imencode('.jpg', rotated_90)
+        _, buffer = cv2.imencode('.jpg', frame)
         base64_image = base64.b64encode(buffer).decode('utf-8')
 
         await websocket.send_text(base64_image)

@@ -11,6 +11,7 @@ pwm = PWM(0x6F)
 pwm.setPWMFreq(60) 
 
 servo_pin = 0
+cam_servo_pin = 1
 dc_pin1 = 11
 dc_pin2 = 12
 speed_pin = 13
@@ -18,10 +19,12 @@ speed_pin = 13
 servoLeft = 250  # Min pulse length out of 4096
 servoCenter = 350
 servoRight = 450  # Max pulse length out of 4096
-speed = 70
+servoCam = 350
+speed = 100
 
 pwm.setPWM(speed_pin, 0, speed*16)
 pwm.setPWM(servo_pin, 0, servoCenter)
+pwm.setPWM(cam_servo_pin, 0, servoCam)
 
 def closeDB(signal, frame):
     print("BYE")
@@ -96,6 +99,22 @@ def mid():
 def right():
     pwm.setPWM(servo_pin, 0, servoRight)
 
+def up():
+    global servoCam
+    if servoCam >= 450:
+        servoCam = 500
+    else: 
+        servoCam += 50
+    pwm.setPWM(cam_servo_pin, 0, servoCam)
+
+def down():
+    global servoCam
+    if servoCam <= 250:
+        servoCam = 200
+    else: 
+        servoCam -= 50
+    pwm.setPWM(cam_servo_pin, 0, servoCam)
+
 #init
 #db = mysql.connector.connect(host='13.125.214.143', user='gamzaking', password='1234', database='gamDB', auth_plugin='mysql_native_password')
 db = mysql.connector.connect(host='192.168.110.164', port = '3306', user='root', password='1234', database='RC')
@@ -125,3 +144,5 @@ while True:
     if cmd == "left" : left()
     if cmd == "mid" : mid()
     if cmd == "right" : right()
+    if cmd == "up" : up()
+    if cmd == "down" : down()
