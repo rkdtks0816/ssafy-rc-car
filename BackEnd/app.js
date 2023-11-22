@@ -32,7 +32,7 @@ app.get('/InsertCmd', (req, res) => {
   const { mode, cmd } = req.query;
   try {
     const connection = GetConnection();
-    const query = `INSERT INTO command(time, mode, cmd, is_finish) VALUES (CURRENT_TIMESTAMP(), '${mode}', '${cmd}', 0)`;
+    const query = `INSERT INTO cmd(time, mode, cmd, is_finish) VALUES (CURRENT_TIMESTAMP(), '${mode}', '${cmd}', 0)`;
 
     connection.query(query, (error, results, fields) => {
       if (error) {
@@ -50,7 +50,45 @@ app.get('/InsertCmd', (req, res) => {
     res.status(500).json({ error: 'Error performing database operation' });
   }
 });
+// 현재 명령 조회
+app.get('/SelectCmd', (req, res) => {
+  try {
+    const connection = GetConnection();
+    const query = `SELECT * FROM cmd ORDER BY time DESC LIMIT 1`;
 
+    connection.query(query, (error, results, fields) => {
+      if (error) {
+        console.error(`Error performing 'SelectState': ${error.message}`);
+        res.status(500).json({ error: 'Error performing database operation' });
+      } else {
+        // 결과가 없거나 is_finish가 1인 경우
+        if (!results.length || results[0].is_finish === 1) {
+          res.json({ message: 'No pending state' });
+          connection.end();  // 연결 종료 위치 변경
+          return;
+        }
+
+        // 상태 완료 표시
+        const updateQuery = 'UPDATE cmd SET is_finish = 1 WHERE is_finish = 0';
+        connection.query(updateQuery, (error, updateResults, fields) => {
+          if (error) {
+            console.error(`Error performing 'UpdateState': ${error.message}`);
+            res.status(500).json({ error: 'Error performing database operation' });
+          } else {
+            console.log('UpdateState successful');
+            // 데이터를 응답으로 전송하거나 필요에 따라 수정
+            res.json(results[0]);
+          }
+          
+          connection.end();  // 연결 종료 위치 변경
+        });
+      }
+    });
+  } catch (error) {
+    console.error(`Error performing 'SelectState': ${error.message}`);
+    res.status(500).json({ error: 'Error performing database operation' });
+  }
+});
 // 현재 상태
 app.get('/InsertState', (req, res) => {
   const { mode, cmd,  power } = req.query;

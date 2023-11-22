@@ -3,13 +3,13 @@
   background-color: black;
 }
 
-.App {
+.Main {
   width: 90vw;
   max-width: 750px;
 }
 
 .picam {
-  width: 600px !important;
+  width: 500px !important;
 }
 
 .ctl-btn {
@@ -24,4 +24,14 @@
 .ctl-btn:hover {
   color: rgb(0, 0, 0);
   background-color: aliceblue;
+}
+
+.mode-btn:hover {
+  color: rgb(0, 0, 0);
+  background-color: aliceblue;
+  filter: invert(100%);
+}
+
+.explanation {
+  max-width: 450px;
 }
