@@ -16,43 +16,40 @@ dc_pin1 = 11
 dc_pin2 = 12
 speed_pin = 13
 
-servoLeft = 250  # Min pulse length out of 4096
-servoCenter = 350
-servoRight = 430  # Max pulse length out of 4096
 baseSpeed = 1000
 speed = baseSpeed
 cam_x = 150
 cam_y = 710
-isStart = 'OFF'
-nowgear = 'P'
+power = 'OFF'
+cmd = 'P'
 
 def InsertState():
-    url = f"http://192.168.110.164:3001/InsertState?gear={nowgear}&power={isStart}"
+    url = f"http://192.168.110.164:3001/InsertState?mode=controller&{cmd}&power={power}"
     # GET 요청 보내기
     requests.get(url)
 def D():
-    global cam_x, nowgear
+    global cam_x, cmd
     if speed == 0:
         pwm.setPWM(dc_pin2, 0, 4096)
         pwm.setPWM(dc_pin1, 4096, 0)
-        nowgear = 'D'
+        cmd = 'D'
         InsertState()
 def R():
-    global cam_x, nowgear
+    global cam_x, cmd
     if speed == 0:
         pwm.setPWM(dc_pin1, 0, 4096)
         pwm.setPWM(dc_pin2, 4096, 0)
-        nowgear = 'R'
+        cmd = 'R'
         InsertState()
 def P():
     global nowgear
     if speed == 0:
         pwm.setPWM(dc_pin1, 0, 4096)
         pwm.setPWM(dc_pin2, 0, 4096)
-        nowgear = 'P'
+        cmd = 'P'
         InsertState()
 def X(value):
-    direction = int(servoLeft + 200 * (value / 256))
+    direction = int(250 + 200 * (value / 256))
     pwm.setPWM(servo_pin, 0, direction)
 def CamX(value):
     global cam_x
@@ -72,14 +69,14 @@ def Break(value):
     speed = int(baseSpeed - (baseSpeed * (value / 255)))
     pwm.setPWM(speed_pin, 0, speed)
 def StartUp():
-    global isStart
+    global power
     if speed == 0:
-        if isStart == 'OFF':
-            isStart = 'ON'
-        elif isStart == 'ON':
-            isStart = 'OFF'
+        if power == 'OFF':
+            power = 'ON'
+        elif power == 'ON':
+            power = 'OFF'
         InsertState()
-        print(isStart)
+        print(power)
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.bind((HOST, PORT))
@@ -107,7 +104,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                                 StartUp()
                             elif code == 10:
                                 Break(value)
-                            if isStart == 'ON':
+                            if power == 'ON':
                                 if code == 304 and value == 1:
                                     D()
                                 elif code == 305 and value == 1:

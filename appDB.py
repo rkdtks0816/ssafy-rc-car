@@ -1,148 +1,179 @@
 from Raspi_PWM_Servo_Driver import PWM
-import mysql.connector
-from threading import Timer, Lock
 from time import sleep
-import signal
-import sys
-from sense_hat import SenseHat
-import datetime
+import requests
 
 pwm = PWM(0x6F)
 pwm.setPWMFreq(60) 
 
 servo_pin = 0
-cam_servo_pin = 1
+cam_x_pin = 1 # 170 370 570 좌 우 200
+cam_y_pin = 14
 dc_pin1 = 11
 dc_pin2 = 12
 speed_pin = 13
 
-servoLeft = 250  # Min pulse length out of 4096
-servoCenter = 350
-servoRight = 450  # Max pulse length out of 4096
-servoCam = 350
-speed = 100
+rLeft = 250
+rCenter = 350
+rRight = 450
+cXLeft = 170
+cXCenter = 370
+cXRight = 570
+cYUp = 350
+cYCenter = 400
+cYDown = 450
 
-pwm.setPWM(speed_pin, 0, speed*16)
-pwm.setPWM(servo_pin, 0, servoCenter)
-pwm.setPWM(cam_servo_pin, 0, servoCam)
+speed = 2048
 
-def closeDB(signal, frame):
-    print("BYE")
-    cur.close()
-    db.close()
-    timer.cancel()
-    timer2.cancel()
-    sys.exit(0)
+power = "OFF"
+nowCmd = "rs"
 
-def polling():
-    global cur, db, ready
-    
-    lock.acquire()
-    cur.execute("select * from command order by time desc limit 1")
-    for (id, time, cmd_string, arg_string, is_finish) in cur:
-        if is_finish == 1 : break
-        ready = (cmd_string, arg_string)
-        cur.execute("update command set is_finish=1 where is_finish=0")
+pwm.setPWM(speed_pin, 0, speed)
+pwm.setPWM(servo_pin, 0, rCenter)
+pwm.setPWM(cam_x_pin, 0, cXCenter)
+pwm.setPWM(cam_y_pin, 0, cYCenter)
 
-    db.commit()
-    lock.release()
-     
-    global timer
-    timer = Timer(0.1, polling)
-    timer.start()
-
-def sensing():
-    global cur, db, sense
-
-    pressure = sense.get_pressure()
-    temp = sense.get_temperature()
-    humidity = sense.get_humidity()
-
-    time = datetime.datetime.now()
-    num1 = round(pressure / 10000, 3)
-    num2 = round(temp / 100, 2)
-    num3 = round(humidity / 100, 2)
-    meta_string = '0|0|0'
-    is_finish = 0
-
-    print(num1, num2, num3)
-    query = "insert into sensing(time, num1, num2, num3, meta_string, is_finish) values (%s, %s, %s, %s, %s, %s)"
-    value = (time, num1, num2, num3, meta_string, is_finish)
-
-    lock.acquire()
-    cur.execute(query, value)
-    db.commit()
-    lock.release()
-
-    global timer2
-    timer2 = Timer(1, sensing)
-    timer2.start()
-
-def go():
+def rg():
     pwm.setPWM(dc_pin2, 0, 4096)
     pwm.setPWM(dc_pin1, 4096, 0)
-
-def back():
-    pwm.setPWM(dc_pin1, 0, 4096)
-    pwm.setPWM(dc_pin2, 4096, 0)
-
-def stop():
+def rs():
     pwm.setPWM(dc_pin1, 0, 4096)
     pwm.setPWM(dc_pin2, 0, 4096)
+def rb():
+    pwm.setPWM(dc_pin1, 0, 4096)
+    pwm.setPWM(dc_pin2, 4096, 0)
+def rl():
+    pwm.setPWM(servo_pin, 0, rLeft)
+def rm():
+    pwm.setPWM(servo_pin, 0, rCenter)
+def rr():
+    pwm.setPWM(servo_pin, 0, rRight)
 
-def left():
-    pwm.setPWM(servo_pin, 0, servoLeft)
+def cg():
+    pwm.setPWM(cam_y_pin, 0, cYUp)
+def cs():
+    pwm.setPWM(cam_y_pin, 0, cYCenter)
+def cb():
+    pwm.setPWM(cam_y_pin, 0, cYDown)
+def cl():
+    pwm.setPWM(cam_x_pin, 0, cXLeft)
+def cm():
+    pwm.setPWM(cam_y_pin, 0, cXCenter)
+def cr():
+    pwm.setPWM(cam_x_pin, 0, cXRight)
 
-def mid():
-    pwm.setPWM(servo_pin, 0, servoCenter)
-
-def right():
-    pwm.setPWM(servo_pin, 0, servoRight)
-
-def up():
-    global servoCam
-    if servoCam >= 450:
-        servoCam = 500
-    else: 
-        servoCam += 50
-    pwm.setPWM(cam_servo_pin, 0, servoCam)
-
-def down():
-    global servoCam
-    if servoCam <= 250:
-        servoCam = 200
-    else: 
-        servoCam -= 50
-    pwm.setPWM(cam_servo_pin, 0, servoCam)
-
-#init
-#db = mysql.connector.connect(host='13.125.214.143', user='gamzaking', password='1234', database='gamDB', auth_plugin='mysql_native_password')
-db = mysql.connector.connect(host='192.168.110.164', port = '3306', user='root', password='1234', database='RC')
-cur = db.cursor()
-ready = None
-timer = None
-
-sense = SenseHat()
-timer2 = None
-lock = Lock()
-
-signal.signal(signal.SIGINT, closeDB)
-polling()
-# sensing()
-
+def su():
+    global speed
+    if speed >= 4046:
+        speed = 4096
+    else:
+        speed += 500
+    pwm.setPWM(speed_pin, 0, speed)
+def sd():
+    global speed
+    if speed <= 1074:
+        speed = 1024
+    else:
+        speed -= 500
+    pwm.setPWM(speed_pin, 0, speed)
+def SelectCmd():
+    url = f"http://192.168.110.164:3001/SelectCmd"
+    # GET 요청 보내기
+    resp = requests.get(url)
+    return resp.json()
+def InsertState():
+    url = f"http://192.168.110.164:3001/InsertState?mode={mode}&cmd={nowCmd}&power={power}"
+    # GET 요청 보내기
+    requests.get(url)
 #main thread
 while True:
     sleep(0.1)
-    if ready == None : continue
+    ready = SelectCmd()
+    if "mode" not in ready: continue
 
-    cmd, arg = ready
-    ready = None
+    mode = ready["mode"]
+    cmd = ready["cmd"]
 
-    if cmd == "go" : go()
-    if cmd == "back" : back()
-    if cmd == "stop" : stop()
-    if cmd == "left" : left()
-    if cmd == "mid" : mid()
-    if cmd == "right" : right()
-    if cmd == "up" : up()
-    if cmd == "down" : down()
+    if mode != "controller":
+        if cmd == "ON" : 
+            power = "ON"
+            InsertState()
+        if cmd == "OFF" : 
+            power = "OFF"
+            InsertState()
+        if power == "ON" :
+            if cmd == "rgl" :
+                rg()
+                rl()
+                nowCmd = cmd
+                InsertState()
+            if cmd == "rg" : 
+                rg()
+                rm()
+                nowCmd = cmd
+                InsertState()
+            if cmd == "rgr" : 
+                rg()
+                rr()
+                nowCmd = cmd
+                InsertState()
+            if cmd == "rl" : 
+                rs()
+                rl()
+                nowCmd = cmd
+                InsertState()
+            if cmd == "rs" : 
+                rs()
+                rm()
+                nowCmd = cmd
+                InsertState()
+            if cmd == "rr" : 
+                rs()
+                rr()
+                nowCmd = cmd
+                InsertState()
+            if cmd == "rbl" : 
+                rb()
+                rl()
+                nowCmd = cmd
+                InsertState()
+            if cmd == "rb" : 
+                rb()
+                rm()
+                nowCmd = cmd
+                InsertState()
+            if cmd == "rbr" : 
+                rb()
+                rr()
+                nowCmd = cmd
+                InsertState()
+            if cmd == "su" : 
+                su()
+            if cmd == "sd" : 
+                sd()
+            if cmd == "cgl" : 
+                cg()
+                cl()
+            if cmd == "cg" : 
+                cg()
+                cm()
+            if cmd == "cgr" : 
+                cg()
+                cr()
+            if cmd == "cl" : 
+                cs()
+                cl()
+            if cmd == "cs" : 
+                cs()
+                cm()
+            if cmd == "cr" : 
+                cs()
+                cr()
+            if cmd == "cbl" : 
+                cb()
+                cl()
+            if cmd == "cb" : 
+                cb()
+                cm()
+            if cmd == "cbr" : 
+                cb()
+                cr()
