@@ -5,75 +5,76 @@ function Keyboard() {
   const [nowP, setNowP] = useState('OFF'); 
   
   const powerToggle = () => {
-    if (nowP == 'OFF') setNowP('ON');
-    else setNowP('OFF');
-    insertCommand('mouse', nowP);
-  }
+    const newPowerState = nowP === 'OFF' ? 'ON' : 'OFF';
+    setNowP(newPowerState);
+    // 파워 상태를 바로 전송
+    insertCommand('keyboard', newPowerState);
+  };
 
   const handleKeyUp = (event) => {
     switch (event.key) {
       case 'q':
-        insertCommand('mouse', 'rgl');
+        insertCommand('keyboard', 'rgl');
         break;
       case 'w':
-        insertCommand('mouse', 'rg');
+        insertCommand('keyboard', 'rg');
         break;
       case 'e':
-        insertCommand('mouse', 'rgr');
+        insertCommand('keyboard', 'rgr');
         break;
       case 'a':
-        insertCommand('mouse', 'rl');
+        insertCommand('keyboard', 'rl');
         break;
       case 's':
-        insertCommand('mouse', 'rs');
+        insertCommand('keyboard', 'rs');
         break;
       case 'd':
-        insertCommand('mouse', 'rr');
+        insertCommand('keyboard', 'rr');
         break;
       case 'z':
-        insertCommand('mouse', 'rbl');
+        insertCommand('keyboard', 'rbl');
         break;
       case 'x':
-        insertCommand('mouse', 'rb');
+        insertCommand('keyboard', 'rb');
         break;
       case 'c':
-        insertCommand('mouse', 'rbr');
+        insertCommand('keyboard', 'rbr');
         break;
       case 't':
-        insertCommand('mouse', 'su');
+        insertCommand('keyboard', 'su');
         break;
       case 'g':
         powerToggle();
         break;
       case 'b':
-        insertCommand('mouse', 'sd');
+        insertCommand('keyboard', 'sd');
           break;
       case 'u':
-        insertCommand('mouse', 'cgl');
+        insertCommand('keyboard', 'cgl');
         break;
       case 'i':
-        insertCommand('mouse', 'cg');
+        insertCommand('keyboard', 'cg');
         break;
       case 'o':
-        insertCommand('mouse', 'cgr');
+        insertCommand('keyboard', 'cgr');
         break;
       case 'j':
-        insertCommand('mouse', 'cl');
+        insertCommand('keyboard', 'cl');
         break;
       case 'k':
-        insertCommand('mouse', 'cs');
+        insertCommand('keyboard', 'cs');
         break;
       case 'l':
-        insertCommand('mouse', 'cr');
+        insertCommand('keyboard', 'cr');
         break;
       case 'm':
-        insertCommand('mouse', 'cbl');
+        insertCommand('keyboard', 'cbl');
         break;
       case ',':
-        insertCommand('mouse', 'cb');
+        insertCommand('keyboard', 'cb');
         break;
       case '.':
-        insertCommand('mouse', 'cbr');
+        insertCommand('keyboard', 'cbr');
         break;
       default:
         // 다른 키 릴리즈 시 실행할 코드
@@ -85,7 +86,7 @@ function Keyboard() {
     document.addEventListener('keyup', handleKeyUp);
     // 컴포넌트가 언마운트되면 이벤트 리스너를 제거합니다.
     return () => {
-      document.removeEventListener('keyup', handleKeyUp)
+      document.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
   

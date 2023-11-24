@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Mouse from './Mouse'
 import Keyboard from './Keyboard'
 
 function Mode(props) {
-  
   return (
     <div>
         <div className='row  align-items-center justify-content-around'>

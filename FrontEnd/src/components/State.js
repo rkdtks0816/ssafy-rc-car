@@ -2,15 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { selectState } from '../utils/Api';
 
 function State(props) {
-  const [powerState, setpowerState] = useState('img/OFF.png');
-  const [cmdState, setcmdState] = useState('img/P.png');
+  const [cmdState, setCmdState] = useState('img/rs.png');
+  const [powerState, setPowerState] = useState('img/OFF.png');
 
   const checkState = async () => {
     const nowData = await selectState();
-    if (nowData.mode == props.mode) {
-      console.log(nowData)
-      setpowerState(`img/${nowData.power}.png`)
-      setcmdState(`img/${nowData.cmd}.png`)
+    if (nowData.cmd == 'changeMode') {
+      props.setMode(nowData.mode);
+    }
+    else if ('mode' in nowData){
+      console.log(nowData.cmd)
+      props.setPower(nowData.power);
+      setPowerState(`img/${nowData.power}.png`);
+      setCmdState(`img/${nowData.cmd}.png`);
     }
   }
   useEffect(() => {
@@ -20,6 +24,7 @@ function State(props) {
       clearInterval(updateState);
     };
   }, []);
+  
   
   return (
     <div className='row'><div className='row align-items-center justify-content-around'>

@@ -5,10 +5,12 @@ function Mouse() {
   const [nowP, setNowP] = useState('OFF'); 
   
   const powerToggle = () => {
-    if (nowP == 'OFF') setNowP('ON');
-    else setNowP('OFF');
-    insertCommand('mouse', nowP);
-  }
+    const newPowerState = nowP === 'OFF' ? 'ON' : 'OFF';
+    setNowP(newPowerState);
+    // 파워 상태를 바로 전송
+    insertCommand('keyboard', newPowerState);
+  };
+  
   
   return (
     <div className='mt-3 text-center row justify-content-around'>
