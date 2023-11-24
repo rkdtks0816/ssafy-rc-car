@@ -22,9 +22,10 @@ cam_x = 150
 cam_y = 710
 power = 'OFF'
 cmd = 'P'
+nowMode = 'mouse'
 
 def InsertState():
-    url = f"http://192.168.110.164:3001/InsertState?mode=controller&{cmd}&power={power}"
+    url = f"http://192.168.110.164:3001/InsertState?mode=controller&cmd={cmd}&power={power}"
     # GET 요청 보내기
     requests.get(url)
 def D():
@@ -42,7 +43,7 @@ def R():
         cmd = 'R'
         InsertState()
 def P():
-    global nowgear
+    global cmd
     if speed == 0:
         pwm.setPWM(dc_pin1, 0, 4096)
         pwm.setPWM(dc_pin2, 0, 4096)
@@ -57,7 +58,7 @@ def CamX(value):
     pwm.setPWM(cam_x_pin, 0, cam_x)
 def CamY(value):
     global cam_y
-    cam_y = int(450 - 100 * (value / 256))
+    cam_y = int(250 + 200 * (value / 256))
     pwm.setPWM(cam_y_pin, 0, cam_y)
 def Accel(value):
     global speed
